@@ -8,8 +8,6 @@ public class HexGrid : MonoBehaviour {
 
 	public event System.Action OnMapReady;
 
-	const int numberToTimeToMerge = 2;
-
 	public int width = 6;
 	public int height = 6;
     public bool showLabel;
@@ -22,7 +20,6 @@ public class HexGrid : MonoBehaviour {
     public Texture2D noiseSource;
 
 	public int seed = 1000;
-	public bool mergeRoom;
 	[Range(0,1)]
 	public float passagePercent;
 
@@ -43,7 +40,8 @@ public class HexGrid : MonoBehaviour {
 		HexMetrics.noiseSource = noiseSource;
 	}
 
-	void Start () {
+	void Start ()
+	{
 		Random.seed = seed;
         HexMetrics.noiseSource = noiseSource;
         gridCanvas = GetComponentInChildren<Canvas>();
@@ -56,8 +54,14 @@ public class HexGrid : MonoBehaviour {
 				CreateCell(x, z, i++);
 			}
 		}
+
+		Stopwatch watch = new Stopwatch ();
+		watch.Start ();
+
         ProcessMap();
         
+		watch.Stop ();
+		UnityEngine.Debug.Log ("Map Finished in " + watch.ElapsedMilliseconds);
 	}
 
     void ProcessMap ()
@@ -75,20 +79,16 @@ public class HexGrid : MonoBehaviour {
             ProcessNextStep(hexCellsList);
         }
 
-		GenerateMeshForRooms (MergeRoom());
+		GenerateMeshForRooms ();
     	
 		if (OnMapReady != null) {
 			OnMapReady ();
 		}
 	}
 
-	void GenerateMeshForRooms (List<int> roomsIndexToIgnore)
+	void GenerateMeshForRooms ()
 	{
 		for (int i = 0; i < rooms.Count; i++) {
-
-			if (roomsIndexToIgnore!= null && roomsIndexToIgnore.Contains (i)) {
-				continue;
-			}
 			HexRoom room = rooms [i];
 			HexMesh hexRoomMesh = Instantiate (hexMeshPrefab, this.transform);
 			hexRoomMesh.Triangulate (room);
@@ -134,6 +134,10 @@ public class HexGrid : MonoBehaviour {
 
 				currentCell.SetPassage (randomDirection, EdgeType.PASSAGE, currentCell.room);
 				neighbour.SetPassage (randomDirection.Opposite(), EdgeType.PASSAGE, currentCell.room);
+				if (currentCell.room != neighbour.room) {
+					rooms.Remove (neighbour.room);
+					currentCell.room.AddCellFromRoom (neighbour.room);
+				}
 
 			}else
             {
@@ -147,6 +151,7 @@ public class HexGrid : MonoBehaviour {
         }
     }
 
+	/*
 	List<int> MergeRoom ()
 	{
 		if (!mergeRoom) {
@@ -212,6 +217,7 @@ public class HexGrid : MonoBehaviour {
 		UnityEngine.Debug.LogError("finished");
 		return indexRoomToRemove;
 	}
+	*/
 
     void CreateCell(int x, int z, int i)
     {

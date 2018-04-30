@@ -31,15 +31,16 @@ public class HexRoom  {
     public void AddCell (HexCell cell)
     {
         cells.Add(cell);
-
 		cell.node.movementCost = region.movementCost;
     }
 
 	public void AddCellFromRoom (HexRoom room) {
-		int totalCellsInROom = room.cells.Count;
-		for (int i = 0; i < totalCellsInROom; i++) {
+
+		int totalCellsInRoom = room.cells.Count;
+		for (int i = 0; i < totalCellsInRoom; i++) {
 			HexCell cell = room.cells [i];
 			AddCell(cell);
+			cell.room = this;
 		}
 	}
 }
