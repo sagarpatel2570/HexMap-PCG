@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
 public class HexRoom  {
 
 	public HexRegion region;
     public List<HexCell> cells = new List<HexCell>();
+	public List<HexRoom> neighbourRoom = new List<HexRoom> ();
 
     public HexRoom (RegionType regionType,HexRegions hexRegions)
     {
@@ -28,6 +28,11 @@ public class HexRoom  {
         
     }
 
+	public void AddNeighbour (HexRoom room)
+	{
+		neighbourRoom.Add (room);
+	}
+
     public void AddCell (HexCell cell)
     {
         cells.Add(cell);
@@ -42,5 +47,30 @@ public class HexRoom  {
 			AddCell(cell);
 			cell.room = this;
 		}
+	}
+
+	public void AddNeighbourRoomFrom(HexRoom room)
+	{
+		foreach (HexRoom r in room.neighbourRoom.ToArray()) {
+			if (!neighbourRoom.Contains (r) && r != this) {
+				neighbourRoom.Add (r);
+			}
+
+			if (r.neighbourRoom.Contains (room)) {
+				r.neighbourRoom.Remove (room);
+				r.neighbourRoom.Add (this);
+			}
+		}
+	}
+
+	public HexRoom GetNeighbourWIthMaxCells ()
+	{
+		neighbourRoom.Sort (delegate (
+			HexRoom r1,HexRoom r2
+		) {
+			return r2.cells.Count.CompareTo(r1.cells.Count);
+		});
+
+		return neighbourRoom [0];
 	}
 }

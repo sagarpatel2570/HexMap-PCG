@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Diagnostics;
 
 public class Enemy : MonoBehaviour {
 
@@ -84,7 +85,14 @@ public class Enemy : MonoBehaviour {
 
 	void FindPath ()
 	{
+		Stopwatch watch = new Stopwatch ();
+		watch.Start ();
+
 		nodes = hexGrid.FindPath (transform.position, endTransform.position);
+
+		watch.Stop ();
+		UnityEngine.Debug.Log ("Path finded in " + watch.ElapsedMilliseconds);
+
 		Vector2[] waypoints = new Vector2[nodes.Count];
 		for (int i = 0; i < nodes.Count; i++) {
 			Vector3 pos = nodes [i].hexCell.transform.position;

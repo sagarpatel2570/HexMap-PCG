@@ -22,7 +22,8 @@ public class HexGrid : MonoBehaviour {
 	public int seed = 1000;
 	[Range(0,1)]
 	public float passagePercent;
-
+	public int minCellInRoom = 3;
+	public bool removeSmallRegion;
 
     HexCell[] cells;
 	Node[] nodes;
@@ -79,16 +80,62 @@ public class HexGrid : MonoBehaviour {
             ProcessNextStep(hexCellsList);
         }
 
-		GenerateMeshForRooms ();
+		List<int> roomIndexToRemove = null;
+
+		if (removeSmallRegion) {
+			roomIndexToRemove = new List<int> ();
+			roomIndexToRemove = RemoveSmallRegions ();
+		}
+
+		GenerateMeshForRooms (roomIndexToRemove);
     	
 		if (OnMapReady != null) {
 			OnMapReady ();
 		}
 	}
 
-	void GenerateMeshForRooms ()
+	List<int> RemoveSmallRegions ()
+	{
+		List<int> indexRoomToIgnore = new List<int> ();
+		foreach (HexRoom room in rooms) {
+
+			if (indexRoomToIgnore.Contains ((rooms.FindIndex (r => r == room)))) {
+				continue;
+			}
+
+			HexRoom currentRoom = room;
+			while (currentRoom.cells.Count <= minCellInRoom) {
+				indexRoomToIgnore.Add (rooms.FindIndex (r => r == currentRoom));
+				HexRoom neighbourRoomWithMaxCell = currentRoom.GetNeighbourWIthMaxCells ();
+				neighbourRoomWithMaxCell.AddNeighbourRoomFrom (currentRoom);
+				neighbourRoomWithMaxCell.AddCellFromRoom (currentRoom);
+
+				foreach (HexCell cell in neighbourRoomWithMaxCell.cells) {
+					for (int i = 0; i < 6; i++) {
+						HexDirection direction = (HexDirection)i;
+						HexCell neighbour = cell.GetNeighbor (direction);
+						if (neighbour != null) {
+							if (neighbour.room.region.type == cell.room.region.type) {
+								cell.SetPassage (direction, EdgeType.PASSAGE, cell.room);
+								neighbour.SetPassage (direction.Opposite(), EdgeType.PASSAGE, cell.room);
+							}
+						}
+					}
+				}
+				currentRoom = neighbourRoomWithMaxCell;
+			}
+		}
+		return indexRoomToIgnore;
+	}
+
+	void GenerateMeshForRooms (List<int> roomIndexToIgnore)
 	{
 		for (int i = 0; i < rooms.Count; i++) {
+
+			if (roomIndexToIgnore != null && roomIndexToIgnore.Contains (i)) {
+				continue;
+			}
+
 			HexRoom room = rooms [i];
 			HexMesh hexRoomMesh = Instantiate (hexMeshPrefab, this.transform);
 			hexRoomMesh.Triangulate (room);
@@ -126,6 +173,9 @@ public class HexGrid : MonoBehaviour {
 					currentCell.SetPassage(randomDirection, EdgeType.DOOR, currentCell.room);
 					neighbour.SetPassage (randomDirection.Opposite (), EdgeType.DOOR, nextRoom);
 
+					currentCell.room.AddNeighbour (nextRoom);
+					nextRoom.AddNeighbour (currentCell.room);
+
                     rooms.Add(nextRoom);
                     nextRoom.AddCell(neighbour);
                 }
@@ -136,6 +186,7 @@ public class HexGrid : MonoBehaviour {
 				neighbour.SetPassage (randomDirection.Opposite(), EdgeType.PASSAGE, currentCell.room);
 				if (currentCell.room != neighbour.room) {
 					rooms.Remove (neighbour.room);
+					currentCell.room.AddNeighbourRoomFrom (neighbour.room);
 					currentCell.room.AddCellFromRoom (neighbour.room);
 				}
 
