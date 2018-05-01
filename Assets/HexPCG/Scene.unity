@@ -465,8 +465,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 414a0fc06528949a0baff4f719b04a4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 10
-  height: 10
+  width: 100
+  height: 100
   showLabel: 0
   cellPrefab: {fileID: 11422220, guid: 94c2312396697489abc866a188f80152, type: 2}
   cellLabelPrefab: {fileID: 11470134, guid: f68794ca03b6f4510b9a5bd6ee9ba2f4, type: 2}
@@ -474,9 +474,10 @@ MonoBehaviour:
     type: 2}
   hexRegions: {fileID: 11400000, guid: 2dbe65b0b0c346f43aad3413fb34045d, type: 2}
   noiseSource: {fileID: 2800000, guid: addd23a8533c7184abe4e18787f1df48, type: 3}
-  seed: 1000
-  mergeRoom: 1
-  passagePercent: 0.85
+  seed: 932
+  passagePercent: 0.8
+  minCellInRoom: 50
+  removeSmallRegion: 1
 --- !u!4 &1571186512
 Transform:
   m_ObjectHideFlags: 0

@@ -59,13 +59,13 @@ public class HexGrid : MonoBehaviour {
 		Stopwatch watch = new Stopwatch ();
 		watch.Start ();
 
-        ProcessMap();
+        GenerateHexMap();
         
 		watch.Stop ();
 		UnityEngine.Debug.Log ("Map Finished in " + watch.ElapsedMilliseconds);
 	}
 
-    void ProcessMap ()
+    void GenerateHexMap ()
     {
         List<HexCell> hexCellsList = new List<HexCell>();
         hexCellsList.Add(cells[0]);
@@ -87,8 +87,8 @@ public class HexGrid : MonoBehaviour {
 			roomIndexToRemove = RemoveSmallRegions ();
 		}
 
-		GenerateMeshForRooms (roomIndexToRemove);
-    	
+		GenerateMeshForRooms( roomIndexToRemove);
+
 		if (OnMapReady != null) {
 			OnMapReady ();
 		}
@@ -97,6 +97,7 @@ public class HexGrid : MonoBehaviour {
 	List<int> RemoveSmallRegions ()
 	{
 		List<int> indexRoomToIgnore = new List<int> ();
+
 		foreach (HexRoom room in rooms) {
 
 			if (indexRoomToIgnore.Contains ((rooms.FindIndex (r => r == room)))) {
@@ -105,24 +106,39 @@ public class HexGrid : MonoBehaviour {
 
 			HexRoom currentRoom = room;
 			while (currentRoom.cells.Count <= minCellInRoom) {
-				indexRoomToIgnore.Add (rooms.FindIndex (r => r == currentRoom));
+				
 				HexRoom neighbourRoomWithMaxCell = currentRoom.GetNeighbourWIthMaxCells ();
+				// FIXME !! this is a quick fix 
+				if (neighbourRoomWithMaxCell == currentRoom) {
+					UnityEngine.Debug.LogError ("this should not happen");
+					neighbourRoomWithMaxCell = currentRoom.neighbourRoom [1];
+				}
 				neighbourRoomWithMaxCell.AddNeighbourRoomFrom (currentRoom);
 				neighbourRoomWithMaxCell.AddCellFromRoom (currentRoom);
 
-				foreach (HexCell cell in neighbourRoomWithMaxCell.cells) {
-					for (int i = 0; i < 6; i++) {
-						HexDirection direction = (HexDirection)i;
-						HexCell neighbour = cell.GetNeighbor (direction);
-						if (neighbour != null) {
-							if (neighbour.room.region.type == cell.room.region.type) {
-								cell.SetPassage (direction, EdgeType.PASSAGE, cell.room);
-								neighbour.SetPassage (direction.Opposite(), EdgeType.PASSAGE, cell.room);
+				indexRoomToIgnore.Add (rooms.FindIndex (r => r == currentRoom));
+				if (indexRoomToIgnore.Contains (rooms.FindIndex (r => r == neighbourRoomWithMaxCell))) {
+					indexRoomToIgnore.Remove (rooms.FindIndex (r => r == neighbourRoomWithMaxCell));
+				}
+				currentRoom = neighbourRoomWithMaxCell;
+			}
+
+			foreach (HexCell cell in currentRoom.cells) {
+				for (int i = 0; i < 6; i++) {
+					HexDirection direction = (HexDirection)i;
+					HexCell neighbour = cell.GetNeighbor (direction);
+					if (neighbour != null ) {
+						if (neighbour.room.region.type == cell.room.region.type) {
+							cell.SetPassage (direction, EdgeType.PASSAGE, cell.room);
+							neighbour.SetPassage (direction.Opposite (), EdgeType.PASSAGE, cell.room);
+						} else {
+							if (cell.edgeTypes [i] == EdgeType.PASSAGE) {
+								cell.SetPassage (direction, EdgeType.WALL, cell.room);
+								neighbour.SetPassage (direction.Opposite (), EdgeType.WALL, cell.room);
 							}
 						}
 					}
 				}
-				currentRoom = neighbourRoomWithMaxCell;
 			}
 		}
 		return indexRoomToIgnore;

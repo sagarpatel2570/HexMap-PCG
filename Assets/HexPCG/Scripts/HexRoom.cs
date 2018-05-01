@@ -30,12 +30,15 @@ public class HexRoom  {
 
 	public void AddNeighbour (HexRoom room)
 	{
-		neighbourRoom.Add (room);
+		if (!neighbourRoom.Contains (room) ) {
+			neighbourRoom.Add (room);
+		}
 	}
 
     public void AddCell (HexCell cell)
     {
-        cells.Add(cell);
+		cells.Add (cell);
+
 		cell.node.movementCost = region.movementCost;
     }
 
@@ -65,12 +68,12 @@ public class HexRoom  {
 
 	public HexRoom GetNeighbourWIthMaxCells ()
 	{
+		neighbourRoom.RemoveAll (r => r == this);
 		neighbourRoom.Sort (delegate (
 			HexRoom r1,HexRoom r2
 		) {
 			return r2.cells.Count.CompareTo(r1.cells.Count);
 		});
-
 		return neighbourRoom [0];
 	}
 }
