@@ -82,21 +82,28 @@ public class HexGrid : MonoBehaviour {
 
 		List<int> roomIndexToRemove = null;
 
-		if (removeSmallRegion) {
-			roomIndexToRemove = new List<int> ();
-			roomIndexToRemove = RemoveSmallRegions ();
-		}
-
-		GenerateMeshForRooms( roomIndexToRemove);
+//		if (removeSmallRegion) {
+//			roomIndexToRemove = new List<int> ();
+//			roomIndexToRemove = RemoveSmallRegions ();
+//		}
+		StartCoroutine(RemoveSmallRegions());
+		//GenerateMeshForRooms( roomIndexToRemove);
 
 		if (OnMapReady != null) {
 			OnMapReady ();
 		}
 	}
 
-	List<int> RemoveSmallRegions ()
+	IEnumerator RemoveSmallRegions ()
 	{
 		List<int> indexRoomToIgnore = new List<int> ();
+
+		GenerateMeshForRooms (null);
+		yield return null;
+		foreach (HexRoom r in roomDictionary.Keys) {
+			DestroyImmediate (roomDictionary [r]);
+		}
+		roomDictionary.Clear ();
 
 		foreach (HexRoom room in rooms) {
 
@@ -106,22 +113,31 @@ public class HexGrid : MonoBehaviour {
 
 			HexRoom currentRoom = room;
 			while (currentRoom.cells.Count <= minCellInRoom) {
-				
-				HexRoom neighbourRoomWithMaxCell = currentRoom.GetNeighbourWIthMaxCells ();
-				// FIXME !! this is a quick fix 
-				if (neighbourRoomWithMaxCell == currentRoom) {
-					UnityEngine.Debug.LogError ("this should not happen");
-					neighbourRoomWithMaxCell = currentRoom.neighbourRoom [1];
+				int roomIndex = rooms.FindIndex (r => r == currentRoom);
+				if (!indexRoomToIgnore.Contains (roomIndex)) {
+					indexRoomToIgnore.Add (roomIndex);
 				}
+				HexRoom neighbourRoomWithMaxCell = currentRoom.GetNeighbourWIthMaxCells ();
+			
 				neighbourRoomWithMaxCell.AddNeighbourRoomFrom (currentRoom);
 				neighbourRoomWithMaxCell.AddCellFromRoom (currentRoom);
 
-				indexRoomToIgnore.Add (rooms.FindIndex (r => r == currentRoom));
-				if (indexRoomToIgnore.Contains (rooms.FindIndex (r => r == neighbourRoomWithMaxCell))) {
-					indexRoomToIgnore.Remove (rooms.FindIndex (r => r == neighbourRoomWithMaxCell));
-				}
+
+			
 				currentRoom = neighbourRoomWithMaxCell;
 			}
+
+			int neighbourIndex = rooms.FindIndex (r => r == currentRoom);
+			if (indexRoomToIgnore.Contains (neighbourIndex)) {
+				indexRoomToIgnore.RemoveAll (x => x == neighbourIndex);
+			}
+
+			GenerateMeshForRooms (indexRoomToIgnore);
+			yield return null;
+			foreach (HexRoom r in roomDictionary.Keys) {
+				DestroyImmediate (roomDictionary [r]);
+			}
+			roomDictionary.Clear ();
 
 			foreach (HexCell cell in currentRoom.cells) {
 				for (int i = 0; i < 6; i++) {
@@ -141,7 +157,11 @@ public class HexGrid : MonoBehaviour {
 				}
 			}
 		}
-		return indexRoomToIgnore;
+
+		GenerateMeshForRooms (indexRoomToIgnore);
+
+
+		//return indexRoomToIgnore;
 	}
 
 	void GenerateMeshForRooms (List<int> roomIndexToIgnore)
