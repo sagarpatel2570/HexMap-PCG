@@ -60,7 +60,7 @@ public class HexRoom  {
 			}
 
 			if (r.neighbourRoom.Contains (room)) {
-				r.neighbourRoom.Remove (room);
+				r.neighbourRoom.RemoveAll (x => x == room);
 				r.neighbourRoom.Add (this);
 			}
 		}
