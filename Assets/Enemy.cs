@@ -7,14 +7,19 @@ public class Enemy : MonoBehaviour {
 
 	public float speed;
 	public float turnSpeed;
+	public float acceleration;
 	public Transform endTransform;
+	public float slowDownDistance;
 
 	Path path;
 	int lineIndex;
+	float currentSpeed;
 	bool previousSide;
 	bool currentSide;
 	Vector2 perpendicularPointOnLine;
 	HexGrid hexGrid;
+	List<Node> nodes;
+	List<HexCell> endHexCells = new List<HexCell> ();
 
 	void Start () {
 		hexGrid = GameObject.FindObjectOfType<HexGrid> ();
@@ -73,15 +78,55 @@ public class Enemy : MonoBehaviour {
 	{
 		Quaternion targetRotation = Quaternion.LookRotation (targetDir);
 		transform.rotation = Quaternion.Lerp (transform.rotation, targetRotation, Time.deltaTime * turnSpeed);
-
 	}
 
 	void Move(Vector3 targetPos)
 	{
-		transform.Translate (Vector3.forward * Time.deltaTime * speed ,Space.Self);
+		float actualSpeed = GetMovementSpeedAcoordingToRegion ();
+		transform.Translate (Vector3.forward * Time.deltaTime * actualSpeed ,Space.Self);
 	}
 
-	public List<Node> nodes;
+	float GetMovementSpeedAcoordingToRegion ()
+	{
+		HexCell currentCell = hexGrid.GetHexcellFromPosition (transform.localPosition);
+		float maxSpeedInRegion = speed / currentCell.room.region.movementCost;
+		currentSpeed = Mathf.MoveTowards (currentSpeed, maxSpeedInRegion, Time.deltaTime * acceleration);
+		float actualSpeed = currentSpeed;
+		if (endHexCells.Contains (currentCell)) 
+		{
+			float distanceRemaining = Vector2.Distance (endHexCells [endHexCells.Count - 1].transform.position.V3ToV2 (), transform.position.V3ToV2 ());
+
+			float percentDistanceRemaning = distanceRemaining / slowDownDistance;
+
+			actualSpeed = Mathf.Lerp (currentSpeed, 0, (1 - percentDistanceRemaning));
+		}
+		return actualSpeed;
+	}
+
+	bool IsLeft(Vector2 a, Vector2 b, Vector2 c){
+		return ((b.x - a.x)*(c.y - a.y) - (b.y - a.y) * (c.x - a.x)) > 0;
+	}
+
+	void AddEndHexcellForSlowDown ()
+	{
+		float totalDistance = nodes.Count * HexMetrics.outerRadius;
+		int nodesToConsiderForStopping = Mathf.CeilToInt (slowDownDistance / HexMetrics.outerRadius);
+		if (endHexCells != null && endHexCells.Count > 0)
+		{
+			endHexCells.Clear ();
+		}
+		for (int i = 0; i < nodesToConsiderForStopping; i++) 
+		{
+			if (i >= nodes.Count) 
+			{
+				break;
+			}
+			int index = nodes.Count - (i + 1);
+			endHexCells.Add (nodes [index].hexCell);
+		}
+
+		endHexCells.Reverse ();
+	}
 
 	void FindPath ()
 	{
@@ -92,6 +137,9 @@ public class Enemy : MonoBehaviour {
 
 		watch.Stop ();
 		UnityEngine.Debug.Log ("Path finded in " + watch.ElapsedMilliseconds);
+
+		AddEndHexcellForSlowDown ();
+
 
 		Vector2[] waypoints = new Vector2[nodes.Count];
 		for (int i = 0; i < nodes.Count; i++) {

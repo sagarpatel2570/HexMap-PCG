@@ -34,7 +34,8 @@ public class HexMesh : MonoBehaviour {
 	public void Triangulate  (HexRoom room) {
 		this.room = room;
         Clear();
-		for (int i = 0; i < room.cells.Count; i++) {
+		for (int i = 0; i < room.cells.Count; i++)
+		{
 			Triangulate(room.cells[i]);
 		}
         Apply();
@@ -87,13 +88,6 @@ public class HexMesh : MonoBehaviour {
 
 		TriangulateConnection(direction, cell, v1, v2);
 
-		/*
-        if (direction <= HexDirection.SE)
-        {
-            TriangulateConnection(direction, cell, v1, v2);
-        }
-        */
-        
         HexCell neighbor = cell.GetNeighbor(direction);
         
         Vector3 bridge = HexMetrics.GetBridge(direction);
@@ -169,16 +163,6 @@ public class HexMesh : MonoBehaviour {
 			{
 				AddConnectionWallTriangle (v2, v4, v5, cell);
 			}
-
-			/*
-            if (cell.edgeTypes[(int)direction] == EdgeType.WALL || 
-                cell.edgeTypes[(int)direction.Next()] == EdgeType.WALL ||
-                cell.GetNeighbor(direction).edgeTypes[(int)direction.Opposite().Previous()] == EdgeType.WALL
-                )
-            {
-                AddConnectionWallTriangle(v2, v4, v5, cell);
-            }
-            */
         }
     }
 

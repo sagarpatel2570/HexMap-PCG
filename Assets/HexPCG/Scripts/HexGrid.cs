@@ -10,10 +10,8 @@ public class HexGrid : MonoBehaviour {
 
 	public int width = 6;
 	public int height = 6;
-    public bool showLabel;
 
 	public HexCell cellPrefab;
-	public Text cellLabelPrefab;
 	public HexMesh hexMeshPrefab;
 
     public HexRegions hexRegions;
@@ -28,7 +26,6 @@ public class HexGrid : MonoBehaviour {
     HexCell[] cells;
 	Node[] nodes;
     List<HexRoom> rooms = new List<HexRoom>();
-	Canvas gridCanvas;
 	Dictionary<HexRoom,GameObject> roomDictionary = new Dictionary<HexRoom, GameObject>();
 
 	void Awake ()
@@ -45,7 +42,6 @@ public class HexGrid : MonoBehaviour {
 	{
 		Random.seed = seed;
         HexMetrics.noiseSource = noiseSource;
-        gridCanvas = GetComponentInChildren<Canvas>();
 
 		cells = new HexCell[height * width];
 		nodes = new Node[height * width];
@@ -218,74 +214,6 @@ public class HexGrid : MonoBehaviour {
         }
     }
 
-	/*
-	List<int> MergeRoom ()
-	{
-		if (!mergeRoom) {
-			return null;
-		}
-
-		// remove common room 
-		List<int> indexRoomToRemove = new List<int> ();
-		List<HexRoom> checkRooms = new List<HexRoom> ();
-
-		Stopwatch watch = new Stopwatch ();
-		watch.Start ();
-
-		for (int x = 0; x < numberToTimeToMerge; x++) {
-			foreach (HexRoom room in rooms) {
-
-				if (checkRooms.Contains (room)) {
-					continue;
-				}
-
-				foreach (HexRoom otherRoom in rooms) {
-
-					if (checkRooms.Contains (otherRoom)) {
-						continue;
-					}
-
-					if (room != otherRoom && room.region.type == otherRoom.region.type) {
-						//same room check of the cell's are connected to each other if so then connect the room
-						List<HexCell> neighbourToAdd = new List<HexCell> (); 
-						foreach (HexCell cell in room.cells) {
-							for (int i = 0; i < 6; i++) {
-								HexCell neighbour = cell.GetNeighbor ((HexDirection)i);
-								if (neighbour == null) {
-									continue;
-								}
-
-								if (neighbour.room == otherRoom) {
-
-									int indexNo = rooms.FindIndex (r => r == neighbour.room);
-									if (!indexRoomToRemove.Contains (indexNo)) {
-										indexRoomToRemove.Add (indexNo);
-									}
-									checkRooms.Add (neighbour.room);
-
-									foreach (HexCell neighbourCell in neighbour.room.cells) {
-										neighbourToAdd.Add (neighbourCell);
-										neighbourCell.room = room;
-									}
-
-								}
-							}
-						}
-						foreach (HexCell cellToAdd in neighbourToAdd) {
-							room.AddCell (cellToAdd);
-						}
-					}
-				}
-			}
-		}
-
-		watch.Stop ();
-		UnityEngine.Debug.Log (watch.ElapsedMilliseconds);
-		UnityEngine.Debug.LogError("finished");
-		return indexRoomToRemove;
-	}
-	*/
-
     void CreateCell(int x, int z, int i)
     {
         Vector3 position = Vector3.zero;
@@ -323,15 +251,6 @@ public class HexGrid : MonoBehaviour {
                     cell.SetNeighbor(HexDirection.SE, cells[i - width + 1]);
                 }
             }
-        }
-
-        if (showLabel)
-        {
-            Text label = Instantiate<Text>(cellLabelPrefab);
-            label.rectTransform.SetParent(gridCanvas.transform, false);
-            label.rectTransform.anchoredPosition =
-                new Vector2(position.x, position.z);
-            label.text = cell.coordinates.ToStringOnSeparateLines();
         }
     }
 

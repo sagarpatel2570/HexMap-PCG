@@ -138,4 +138,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 25
   turnSpeed: 7
+  acceleration: 10
   endTransform: {fileID: 0}
+  slowDownDistance: 39
