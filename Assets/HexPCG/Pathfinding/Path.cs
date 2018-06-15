@@ -2,28 +2,39 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Path {
-
+/// <summary>
+/// Given a list of position this class will create lines
+/// </summary>
+public class Path 
+{
 	public Line[] lines;
 
-	public Path  (Vector2[] wayPoints,float distanceToPerpendicularLineFromEndpoint,bool isCyclic = false) {
-		if (!isCyclic) {
+	public Path  (Vector2[] wayPoints,float distanceToPerpendicularLineFromEndpoint,bool isCyclic = false)
+	{
+		if (!isCyclic) 
+		{
 			lines = new Line[wayPoints.Length - 1];
-			for (int i = 0; i < lines.Length; i++) {
+			for (int i = 0; i < lines.Length; i++) 
+			{
 				lines [i] = new Line (wayPoints [i], wayPoints [i + 1], distanceToPerpendicularLineFromEndpoint);
 			}
-		} else {
+		} else
+		{
 			lines = new Line[wayPoints.Length ];
 
-			for (int i = 0; i < lines.Length; i++) {
+			for (int i = 0; i < lines.Length; i++)
+			{
 				lines [i] = new Line (wayPoints [i], wayPoints [(i + 1)%wayPoints.Length], distanceToPerpendicularLineFromEndpoint);
 			}
 		}
 	}
 
-	public void DrawGizmos () {
-		if (lines != null) {
-			for (int i = 0; i < lines.Length; i++) {
+	public void DrawGizmos () 
+	{
+		if (lines != null) 
+		{
+			for (int i = 0; i < lines.Length; i++) 
+			{
 				Gizmos.color = Color.white;
 				Gizmos.DrawSphere (lines [i].starPoint.V2ToV3(), 3);
 				Gizmos.DrawSphere (lines [i].endPoint.V2ToV3(),3);
@@ -35,5 +46,4 @@ public class Path {
 			}
 		}
 	}
-
 }

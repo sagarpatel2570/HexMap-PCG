@@ -87,27 +87,6 @@ public class HexMesh : MonoBehaviour {
         AddTriangleColor(room.region.regionColor);
 
 		TriangulateConnection(direction, cell, v1, v2);
-
-        HexCell neighbor = cell.GetNeighbor(direction);
-        
-        Vector3 bridge = HexMetrics.GetBridge(direction);
-        Vector3 v3 = v1 + bridge;
-        Vector3 v4 = v2 + bridge;
-
-
-		if (cell.edgeTypes[(int)direction] == EdgeType.WALL )
-        {
-            HexCell nextNeighbor = cell.GetNeighbor(direction.Next());
-            AddConnectionWall(v1, v2, v3, v4, cell);
-
-            Vector3 v5 = v2 + HexMetrics.GetBridge(direction.Next());
-            if (nextNeighbor != null)
-            {
-                v5.y = nextNeighbor.transform.localPosition.y;
-            }
-            AddConnectionWallTriangle(v2, v4, v5, cell);
-
-        }
     }
 
     void TriangulateConnection( HexDirection direction, HexCell cell, Vector3 v1, Vector3 v2 )
@@ -131,12 +110,12 @@ public class HexMesh : MonoBehaviour {
 				room.region.regionColor
 			);
 		}
-       
+       	/// if the neifhfbour is wall we create wall
         if (cell.edgeTypes[(int)direction] == EdgeType.WALL)
         {
             AddConnectionWall(v1, v2, v3, v4, cell);
         }
-
+		/// if the neihgbour is door we create door
         if (cell.edgeTypes[(int)direction] == EdgeType.DOOR)
         {
             GenerateDoor(v1,v2,v3,v4);
@@ -159,6 +138,7 @@ public class HexMesh : MonoBehaviour {
 				AddTriangle (v2, v4, v5);
 				AddTriangleColor (room.region.regionColor);
 			}
+			/// create a triangle wall adjacent to wall 
 			if (cell.edgeTypes[(int)direction] == EdgeType.WALL || cell.edgeTypes[(int)direction] == EdgeType.DOOR)
 			{
 				AddConnectionWallTriangle (v2, v4, v5, cell);
@@ -216,6 +196,7 @@ public class HexMesh : MonoBehaviour {
         GameObject door = Instantiate(doorPrefab, this.transform);
         door.GetComponent<MeshFilter>().mesh = doorMesh;
 
+		/// perturb the vertices in world position we do this because our base vertices is also pertubed
         v1 = Perturb(v1);
         v2 = Perturb(v2);
         v3 = Perturb(v3);
@@ -227,6 +208,7 @@ public class HexMesh : MonoBehaviour {
 
         door.transform.position = v1;
 		door.transform.right = (v4 - v2).normalized;
+		/// transform it to local position so that we can add it to our mesh
         v1 = door.transform.InverseTransformPoint(v1);
         v2 = door.transform.InverseTransformPoint(v2);
         v3 = door.transform.InverseTransformPoint(v3);

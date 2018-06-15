@@ -92,6 +92,7 @@ public class HexGrid : MonoBehaviour {
 
 	List<int> RemoveSmallRegions ()
 	{
+		/// we maintain a list of room which have combine so that we can actually ignore them from rendering
 		List<int> indexRoomToIgnore = new List<int> ();
 
 		foreach (HexRoom room in rooms) {
@@ -101,24 +102,25 @@ public class HexGrid : MonoBehaviour {
 			}
 
 			HexRoom currentRoom = room;
+			/// add the neighbour rooms until the combination of room has minimum cell count
 			while (currentRoom.cells.Count <= minCellInRoom) {
-				
+
+				/// find the neighbour with max cell so that we do not go in merge room after room
 				HexRoom neighbourRoomWithMaxCell = currentRoom.GetNeighbourWIthMaxCells ();
-				// FIXME !! this is a quick fix 
-				if (neighbourRoomWithMaxCell == currentRoom) {
-					UnityEngine.Debug.LogError ("this should not happen");
-					neighbourRoomWithMaxCell = currentRoom.neighbourRoom [1];
-				}
+				/// add all the cell's neighbour rooms to current cell room
 				neighbourRoomWithMaxCell.AddNeighbourRoomFrom (currentRoom);
+				/// also add all of it's cell
 				neighbourRoomWithMaxCell.AddCellFromRoom (currentRoom);
 
 				indexRoomToIgnore.Add (rooms.FindIndex (r => r == currentRoom));
+				/// we remove the index from the indexroomtoignore list if the neighbourRoomWithMaxCell room index is in that list
 				if (indexRoomToIgnore.Contains (rooms.FindIndex (r => r == neighbourRoomWithMaxCell))) {
 					indexRoomToIgnore.Remove (rooms.FindIndex (r => r == neighbourRoomWithMaxCell));
 				}
 				currentRoom = neighbourRoomWithMaxCell;
 			}
 
+			/// we remove unwanted walls and door from the combine rooms
 			foreach (HexCell cell in currentRoom.cells) {
 				for (int i = 0; i < 6; i++) {
 					HexDirection direction = (HexDirection)i;
@@ -137,9 +139,15 @@ public class HexGrid : MonoBehaviour {
 				}
 			}
 		}
+
 		return indexRoomToIgnore;
 	}
 
+	/// <summary>
+	/// Generates the mesh for each rooms.
+	/// we ignore the rooms' which we merge
+	/// </summary>
+	/// <param name="roomIndexToIgnore">Room index to ignore.</param>
 	void GenerateMeshForRooms (List<int> roomIndexToIgnore)
 	{
 		for (int i = 0; i < rooms.Count; i++) {
@@ -155,6 +163,13 @@ public class HexGrid : MonoBehaviour {
 		}
 	}
 
+	/// Maze Generation
+	/// if we visit  cell for the first time  we will add it to our list and remove it form the last index (same as stack) once's it is fully initialize
+	/// if it is visited first time we either create passage or door's
+	/// if visited second time we check if it has same region type if so we create a passage also if both have different room we merge them
+	/// else it has differnet region so we add wall
+	/// if it doesn't have neighbour we simmple put walls
+	/// 
     void ProcessNextStep (List<HexCell> hexCellsList)
     {
         HexCell currentCell = hexCellsList[hexCellsList.Count - 1];
@@ -164,7 +179,8 @@ public class HexGrid : MonoBehaviour {
             hexCellsList.RemoveAt(hexCellsList.Count - 1);
             return;
         }
-
+		/// we should avoid the direction which is already initialize with some type wall, door or passage so that
+		/// we can make sure that all of it direction's are visited
         HexDirection randomDirection = currentCell.GetRandomUnVisitedDirection();
         HexCell neighbour = currentCell.GetNeighbor(randomDirection);
 
@@ -198,7 +214,9 @@ public class HexGrid : MonoBehaviour {
 				neighbour.SetPassage (randomDirection.Opposite(), EdgeType.PASSAGE, currentCell.room);
 				if (currentCell.room != neighbour.room) {
 					rooms.Remove (neighbour.room);
+					/// add all the cell's neighbour rooms to current cell room
 					currentCell.room.AddNeighbourRoomFrom (neighbour.room);
+					/// also add all of it's cell
 					currentCell.room.AddCellFromRoom (neighbour.room);
 				}
 
@@ -214,6 +232,9 @@ public class HexGrid : MonoBehaviour {
         }
     }
 
+	/// Create the hex and store its neighbour information
+	/// For more infor about hexmap
+	/// https://catlikecoding.com/unity/tutorials/hex-map/part-1/
     void CreateCell(int x, int z, int i)
     {
         Vector3 position = Vector3.zero;
@@ -268,6 +289,12 @@ public class HexGrid : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Find the shortest path from position A to Position B considering region cost into account
+	/// </summary>
+	/// <returns>The path.</returns>
+	/// <param name="startpos">Startpos.</param>
+	/// <param name="endPos">End position.</param>
 	public List<Node> FindPath (Vector3 startpos,Vector3 endPos)
 	{
 		HexCell startCell = GetHexcellFromPosition (startpos);
@@ -287,6 +314,11 @@ public class HexGrid : MonoBehaviour {
 		return cell;
 	}
 
+	/// <summary>
+	/// Refreshs the map.
+	/// It will disable all the room except the room that you passed
+	/// </summary>
+	/// <param name="room">Room.</param>
 	public void RefreshMap (HexRoom room)
 	{
 		foreach (HexRoom r in roomDictionary.Keys) {

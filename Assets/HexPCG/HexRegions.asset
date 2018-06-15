@@ -16,24 +16,24 @@ MonoBehaviour:
     type: 0
     movementCost: 1
     regionColor: {r: 0.9852941, g: 0.7916329, b: 0.15938579, a: 1}
-    chanceOfOccurence: 0.7
+    chanceOfOccurence: 0.39
   - name: Rock
     type: 1
-    movementCost: 7
+    movementCost: 3
     regionColor: {r: 0.44852942, g: 0.32479718, b: 0, a: 1}
-    chanceOfOccurence: 0.25
+    chanceOfOccurence: 0.73
   - name: Water
     type: 2
-    movementCost: 10
+    movementCost: 0.5
     regionColor: {r: 0, g: 0.46206903, b: 1, a: 1}
-    chanceOfOccurence: 0.45
+    chanceOfOccurence: 0.08
   - name: Grass
     type: 3
     movementCost: 2
     regionColor: {r: 0, g: 1, b: 0.13103437, a: 1}
-    chanceOfOccurence: 0.8
+    chanceOfOccurence: 0.2
   - name: Ice
     type: 4
     movementCost: 0.3
     regionColor: {r: 0.9411765, g: 0.9411765, b: 0.9411765, a: 0.972}
-    chanceOfOccurence: 0.2
+    chanceOfOccurence: 0.67

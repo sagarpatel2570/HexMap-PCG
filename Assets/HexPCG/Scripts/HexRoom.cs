@@ -41,7 +41,10 @@ public class HexRoom  {
 
 		cell.node.movementCost = region.movementCost;
     }
-
+	/// <summary>
+	/// Adds the cells of the given room to this room
+	/// </summary>
+	/// <param name="room">Room.</param>
 	public void AddCellFromRoom (HexRoom room) {
 
 		int totalCellsInRoom = room.cells.Count;
@@ -51,14 +54,17 @@ public class HexRoom  {
 			cell.room = this;
 		}
 	}
-
+	/// <summary>
+	/// Adds the neighbour rooms to this room
+	/// </summary>
+	/// <param name="room">Room.</param>
 	public void AddNeighbourRoomFrom(HexRoom room)
 	{
 		foreach (HexRoom r in room.neighbourRoom.ToArray()) {
 			if (!neighbourRoom.Contains (r) && r != this) {
 				neighbourRoom.Add (r);
 			}
-
+			// make sure to remove the "room" from it's neighbour and add this to room r
 			if (r.neighbourRoom.Contains (room)) {
 				r.neighbourRoom.RemoveAll (x => x == room);
 				r.neighbourRoom.Add (this);

@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 
 [System.Serializable]
+/// <summary>
+/// Hex coordinates.
+/// for more info https://catlikecoding.com/unity/tutorials/hex-map/part-1/
+/// </summary>
 public struct HexCoordinates {
 
 	[SerializeField]

@@ -3,11 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using Priority_Queue;
 
+/// <summary>
+/// A star.  Reference link https://www.redblobgames.com/pathfinding/a-star/introduction.html
+/// I used Priority Queue To store the cost to reach neighbour 
+/// This is the link https://github.com/BlueRaja/High-Speed-Priority-Queue-for-C-Sharp
+/// </summary>
 public static class AStar {
 
 	static List<Node> path = new List<Node>();
 
 	public static List<Node> DoPathFind_AStar (Node startNode,Node endNode,Node[] hexMapNodes) {
+
+		// if startnode is equal to endnode
+		// no need of pathfinding
+		if (startNode == endNode) {
+			Debug.LogError ("start and end positions are same");
+			return null;
+		}
 
 		// clear everything 
 		path.Clear ();
@@ -35,8 +47,10 @@ public static class AStar {
 
 				Node n = neighbourCell.node;
 				float neighbourCost = 0;
+				/// if it is wall we should not be able to proceed hence adding max value
 				if (currentNode.hexCell.edgeTypes [i] == EdgeType.WALL) {
 					neighbourCost = float.MaxValue;
+					/// for door's there should be a perfect calculation which consite's it speed and wait time into account in movement cost TODO !!!
 				}else if(currentNode.hexCell.edgeTypes [i] == EdgeType.DOOR) {
 					neighbourCost = 5;
 				}
@@ -84,6 +98,11 @@ public static class AStar {
 	}
 }
 
+/// <summary>
+/// Node. This is simple data for hexcell which store's movement cost 
+/// and the neighbour it came from
+/// and cost so far to reach that node
+/// </summary>
 public class Node {
 	public HexCell hexCell;
 	public float movementCost;

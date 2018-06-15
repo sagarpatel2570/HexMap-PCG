@@ -5,8 +5,10 @@ public static class HexMetrics {
 	public const float outerRadius = 13f;
 	public const float innerRadius = outerRadius * 0.866025404f;
     public const float wallHeight = 3.5f;
-    public const float solidFactor = 0.9f;
-    public const float blendFactor = 1f - solidFactor;
+	/// This is the inner region.
+	public const float solidFactor = 0.9f;
+	/// we are using this to create wall .we would use blending one's we use texture
+    public const float blendFactor = 1f - solidFactor;  
 	public const float noiseScale = 0.003f;
 	public const float cellPerturbStrength = 5f;
 	public static Texture2D noiseSource;

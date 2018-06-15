@@ -36,15 +36,21 @@ public class Enemy : MonoBehaviour {
 			return;
 		}
 
-		Vector2 targetPos = FollowPath();
-		Vector3 targetDir = Seek(targetPos.V2ToV3());
+		Vector2 targetPos = FollowPath();  /// get the targetpos
+		Vector3 targetDir = Seek(targetPos.V2ToV3()); /// get the target direction
 		if(targetDir != Vector3.zero)
 		{
-		    Rotate(targetDir);
+		    Rotate(targetDir); /// rotate the transform according to turn speed
 		}
-		Move(targetPos.V2ToV3());
+		Move(targetPos.V2ToV3()); /// finally move the transform
 	}
 
+	/// <summary>
+	/// we have created a perpendiculate line at the certain distance from endpoint 
+	/// so if the player crosses that point it will seek the endpoint of next line 
+	/// this way we get smooth turn movement 
+	/// </summary>
+	/// <returns>The path.</returns>
 	Vector2 FollowPath()
 	{
 		// find the  shortest perpendicular to the line ..
@@ -53,6 +59,7 @@ public class Enemy : MonoBehaviour {
 		if(currentSide != previousSide)
 		{
 			lineIndex++;
+
 			if(lineIndex >= path.lines.Length)
 			{
 				lineIndex = path.lines.Length - 1;
@@ -60,15 +67,17 @@ public class Enemy : MonoBehaviour {
 				previousSide = currentSide;
 			}
 			line = path.lines[lineIndex];
-			perpendicularPointOnLine = line.starPoint;
 			previousSide = currentSide = line.GetSide(transform.position.V3ToV2());
 		}
 		previousSide = currentSide;
-		perpendicularPointOnLine = line.PerpendicularPointOnLine (transform.position.V3ToV2());
-		Vector2 targetPosition = perpendicularPointOnLine + (line.endPoint - line.starPoint).normalized * 0.5f;
-		return (targetPosition);
+		return (line.endPoint);
 	}
 
+
+	/// <summary>
+	/// Seek the specified targetPos.
+	/// </summary>
+	/// <param name="targetPos">Target position.</param>
 	Vector3 Seek(Vector3 targetPos)
 	{
 		return (targetPos - transform.position).normalized;
@@ -86,6 +95,11 @@ public class Enemy : MonoBehaviour {
 		transform.Translate (Vector3.forward * Time.deltaTime * actualSpeed ,Space.Self);
 	}
 
+	/// <summary>
+	/// Gets the movement speed acoording to region.
+	/// It will slow down the speed with the factor of movement cost which is defined in the region scriptable object
+	/// </summary>
+	/// <returns>The movement speed acoording to region.</returns>
 	float GetMovementSpeedAcoordingToRegion ()
 	{
 		HexCell currentCell = hexGrid.GetHexcellFromPosition (transform.localPosition);
@@ -103,10 +117,9 @@ public class Enemy : MonoBehaviour {
 		return actualSpeed;
 	}
 
-	bool IsLeft(Vector2 a, Vector2 b, Vector2 c){
-		return ((b.x - a.x)*(c.y - a.y) - (b.y - a.y) * (c.x - a.x)) > 0;
-	}
-
+	/// <summary>
+	/// Adds the end hexcell according to the slowdown distance  for slow down.
+	/// </summary>
 	void AddEndHexcellForSlowDown ()
 	{
 		float totalDistance = nodes.Count * HexMetrics.outerRadius;
@@ -128,6 +141,9 @@ public class Enemy : MonoBehaviour {
 		endHexCells.Reverse ();
 	}
 
+	/// <summary>
+	/// Finds the shortest path and will create a path for movement
+	/// </summary>
 	void FindPath ()
 	{
 		Stopwatch watch = new Stopwatch ();
@@ -138,8 +154,10 @@ public class Enemy : MonoBehaviour {
 		watch.Stop ();
 		UnityEngine.Debug.Log ("Path finded in " + watch.ElapsedMilliseconds);
 
-		AddEndHexcellForSlowDown ();
+		if (nodes == null)
+			return;
 
+		AddEndHexcellForSlowDown ();
 
 		Vector2[] waypoints = new Vector2[nodes.Count];
 		for (int i = 0; i < nodes.Count; i++) {
